@@ -1,6 +1,10 @@
-const getresponse = async (req, res) => {
-    const [username, companyName] = req.body;
+exports.getresponse = async (req, res) => {
+    const {username, companyName} = req.body;
 
+try {
+   if(!username || !companyName){
+       return res.status(400).json({ message: 'All fields are required' });
+    }
     const currentDate = new Date();
     const formattedDate = currentDate.toLocaleDateString('en-US', {
         year: 'numeric',
@@ -18,11 +22,14 @@ const getresponse = async (req, res) => {
     <p>Collectively referred to as “Parties” and, individually a “Party”.</p>
     `;
 
-    res.json({
+    res.status(201).json({
         pic_name: username,
         company_name: companyName,
         nda_content: ndaContent
     });
+    
+} catch (error) {
+    res.status(500).json({ message: 'Internal server error' });
+    
 }
-
-module.exports = {getresponse}
+}

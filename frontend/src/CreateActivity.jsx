@@ -29,13 +29,7 @@ const CreateActivity = () => {
     },
   ]);
 
-  const [currentTask, setCurrentTask] = useState({
-    quantity: "",
-    totalSFT: "",
-    rate: "",
-    tax: "",
-    amount: "",
-  });
+  const [currentTasks, setCurrentTasks] = useState({});
 
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
@@ -54,18 +48,21 @@ const CreateActivity = () => {
     );
   };
 
-  const handleCurrentTaskChange = (e) => {
+  const handleCurrentTaskChange = (tableId, e) => {
     const { name, value } = e.target;
-    setCurrentTask((prev) => ({
+    setCurrentTasks((prev) => ({
       ...prev,
-      [name]: value,
-      amount:
-        name === "rate" || name === "totalSFT"
-          ? calculateAmount(
-              name === "rate" ? value : prev.rate,
-              name === "totalSFT" ? value : prev.totalSFT
-            )
-          : prev.amount,
+      [tableId]: {
+        ...prev[tableId],
+        [name]: value,
+        amount:
+          name === "rate" || name === "totalSFT"
+            ? calculateAmount(
+                name === "rate" ? value : prev[tableId]?.rate,
+                name === "totalSFT" ? value : prev[tableId]?.totalSFT
+              )
+            : prev[tableId]?.amount,
+      },
     }));
   };
 
@@ -91,24 +88,34 @@ const CreateActivity = () => {
   };
 
   const addTask = (tableId) => {
-    if (currentTask.quantity && currentTask.totalSFT && currentTask.rate) {
+    if (
+      currentTasks[tableId]?.quantity &&
+      currentTasks[tableId]?.totalSFT &&
+      currentTasks[tableId]?.rate
+    ) {
       setTaskTables((prev) =>
         prev.map((table) =>
           table.id === tableId
             ? {
                 ...table,
-                tasks: [...table.tasks, { ...currentTask, id: Date.now() }],
+                tasks: [
+                  ...table.tasks,
+                  { ...currentTasks[tableId], id: Date.now() },
+                ],
               }
             : table
         )
       );
-      setCurrentTask({
-        quantity: "",
-        totalSFT: "",
-        rate: "",
-        tax: "",
-        amount: "",
-      });
+      setCurrentTasks((prev) => ({
+        ...prev,
+        [tableId]: {
+          quantity: "",
+          totalSFT: "",
+          rate: "",
+          tax: "",
+          amount: "",
+        },
+      }));
     }
   };
 
@@ -152,18 +159,29 @@ const CreateActivity = () => {
         if (table.id === tableId) {
           return {
             ...table,
-            taskNum: "",
-            taskName: "",
             tasks: [],
           };
         }
         return table;
       })
     );
+    // Clear current tasks for the specific table
+    setCurrentTasks((prev) => ({
+      ...prev,
+      [tableId]: {
+        quantity: "",
+        totalSFT: "",
+        rate: "",
+        tax: "",
+        amount: "",
+      },
+    }));
   };
 
   return (
     <div className="CreateActivity">
+    {/* <h1>NON-DISCLOSURE AGREEMENT</h1> <p>This Non-DDisclosure Agreement (“Agreement”) is made on this March 1, 2025 (“Effective Date”)</p> <p>BETWEEN</p> <p>Pantomath Capital Advisors Private Limited, a company incorporated in India under the Companies Act, 1956 and having its office at 406-408 Keshava Premises, Bandra Kurla Complex, Bandra-East, Mumbai, Maharashtra, India (hereinafter referred to as the “Disclosing Party”, which expression shall, unless repugnant to the context or meaning thereof, mean and include its successors and permitted assigns) of the First Part.</p> <p>AND</p> <p>John Doe, who is a part of Tech Solutions Inc. a Limited Partnership incorporated under the laws of United States of America having its headquarters at Mumbai (hereinafter referred to as the “Receiving Party”, which expression shall, unless repugnant to the context or meaning thereof, mean and include its directors, promoters, successors and permitted assigns) of the Second Part.</p> <p>Collectively referred to as “Parties” and, individually a “Party”.</p> */}
+
       <h2>Create Activity</h2>
       <div className="activityform">
         <form onSubmit={handleSubmit}>
@@ -295,7 +313,7 @@ const CreateActivity = () => {
                     <td>{task.rate}</td>
                     <td>{task.tax}</td>
                     <td>{task.amount}</td>
-                    <td style={{display:"flex", gap:"1vw"}}>
+                    <td style={{ display: "flex", gap: "1vw" }}>
                       <button
                         onClick={() => editTask(table.id, task.id)}
                         className="icon-button edit-btn"
@@ -317,35 +335,35 @@ const CreateActivity = () => {
                     <input
                       type="number"
                       name="quantity"
-                      value={currentTask.quantity}
-                      onChange={handleCurrentTaskChange}
+                      value={currentTasks[table.id]?.quantity || ""}
+                      onChange={(e) => handleCurrentTaskChange(table.id, e)}
                     />
                   </td>
                   <td>
                     <input
                       type="number"
                       name="totalSFT"
-                      value={currentTask.totalSFT}
-                      onChange={handleCurrentTaskChange}
+                      value={currentTasks[table.id]?.totalSFT || ""}
+                      onChange={(e) => handleCurrentTaskChange(table.id, e)}
                     />
                   </td>
                   <td>
                     <input
                       type="number"
                       name="rate"
-                      value={currentTask.rate}
-                      onChange={handleCurrentTaskChange}
+                      value={currentTasks[table.id]?.rate || ""}
+                      onChange={(e) => handleCurrentTaskChange(table.id, e)}
                     />
                   </td>
                   <td>
                     <input
                       type="number"
                       name="tax"
-                      value={currentTask.tax}
-                      onChange={handleCurrentTaskChange}
+                      value={currentTasks[table.id]?.tax || ""}
+                      onChange={(e) => handleCurrentTaskChange(table.id, e)}
                     />
                   </td>
-                  <td>{currentTask.amount}</td>
+                  <td>{currentTasks[table.id]?.amount || ""}</td>
                   <td style={{ display: "flex", gap: "1vw" }}>
                     <button
                       onClick={() => addTask(table.id)}
@@ -354,7 +372,9 @@ const CreateActivity = () => {
                       <FaPlus />
                     </button>
                     <button
-                      onClick={() => deleteTask(table.id, currentTask.id)}
+                      onClick={() =>
+                        deleteTask(table.id, currentTasks[table.id]?.id)
+                      }
                       className="icon-button delete-btn"
                     >
                       <FaTrash />

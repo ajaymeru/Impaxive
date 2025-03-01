@@ -1,4 +1,7 @@
-import getresponse from "./controller"
+const express = require('express');
+const router = express.Router();
+const { getresponse } = require('./controller');
 
-app.post('/getresponse', getresponse);
+router.post('/getresponse', getresponse);
 
+module.exports = router; 
